@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>XR7 LEVEL UP + EMOTE BOT</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00d2ff;
+            --secondary: #3a7bd5;
+            --accent: #00d2ff;
+            --bg: #050505;
+            --card: #121212;
+            --card-hover: #1e1e1e;
+            --input-bg: #1a1a1a;
+            --text: #e0e0e0;
+            --text-dim: #888;
+            --danger: #ff4444;
+            --warning: #ffaa00;
+            --border: #333;
+            --gradient: linear-gradient(135deg, #00d2ff, #3a7bd5);
+            --gradient-btn: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            --glow: 0 0 15px rgba(0, 210, 255, 0.4);
+        }
+
+        /* Hide Number Input Spinners */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 15px;
+            overflow-x: hidden;
+        }
+
+        /* Scanline Effect (Optimized) */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg,
+                    rgba(0, 210, 255, 0.03),
+                    rgba(0, 210, 255, 0.03) 1px,
+                    transparent 1px,
+                    transparent 2px);
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.3;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: var(--card);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header h1 {
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(0, 210, 255, 0.3);
+        }
+
+        .header p {
+            color: var(--text-dim);
+            font-size: 0.9rem;
+        }
+
+        .session-info {
+            margin-top: 15px;
+            padding: 6px 15px;
+            background: rgba(0, 210, 255, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 50px;
+            display: inline-block;
+            font-size: 0.8rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+
+        /* Status Box */
+        .status-box {
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .status-box .status {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .status.online {
+            color: var(--primary);
+            text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
+        }
+
+        .status.offline {
+            color: var(--danger);
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.4);
+        }
+
+        .status.farming {
+            color: var(--warning);
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-box .account-name {
+            color: #fff;
+            font-size: 1rem;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+
+        /* Inputs */
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-group label i {
+            color: var(--primary);
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 14px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: #fff;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.2);
+            background: #202020;
+        }
+
+        /* Buttons */
+        button {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(255, 68, 68, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #00d2ff, #928DAB);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.2);
+        }
+
+        /* Tabs */
+        .tabs {
+            background: #151515;
+            padding: 5px;
+            border-radius: 15px;
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            color: var(--text-dim);
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: var(--card-hover);
+            color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .tab-btn i {
+            margin-right: 8px;
+        }
+
+        /* Emote Grid */
+        .emote-category-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .emote-category-tab {
+            white-space: nowrap;
+            padding: 8px 16px;
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .emote-category-tab.active {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+        }
+
+        .emote-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 10px;
+            max-height: 50vh;
+            overflow-y: auto;
+            padding: 5px;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #111;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .emote-item {
+            background: #181818;
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .emote-item:active {
+            transform: scale(0.95);
+        }
+
+        .emote-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+        }
+
+        .emote-item .emote-name {
+            font-size: 0.7rem;
+            color: #ccc;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* UID Grid - Mobile Optimized */
+        .uid-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .uid-grid input {
+            padding: 10px;
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .result-box {
+            background: rgba(0, 210, 255, 0.05);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 210, 255, 0.2);
+            margin-top: 15px;
+            text-align: center;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 600px) {
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+
+            .uid-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .card {
+                padding: 15px;
+            }
+        }
+    </style>
+    <script src="https://pl28590825.effectivegatecpm.com/f4/70/1e/f4701e063154433b94f728c5f6d0c779.js"></script>
+</head>
+
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <i class="fas fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary);"></i>
+        <h3 style="margin-top: 20px; color: #fff;">System Initializing...</h3>
+    </div>
+
+    <div class="container">
+        <!-- Native Banner Ad -->
+        <div style="display:flex;justify-content:center;margin-bottom:15px;text-align:center;">
+            <script async="async" data-cfasync="false"
+                src="https://pl28592817.effectivegatecpm.com/3e93d7984c747c03967dcad9b11ad010/invoke.js"></script>
+            <div id="container-3e93d7984c747c03967dcad9b11ad010"></div>
+        </div>
+        <!-- Header -->
+        <div class="header">
+            <h1><i class="fas fa-robot"></i> UG BOT</h1>
+            <p style="font-size: 0.8rem; letter-spacing: 1px; color: var(--secondary);">LEVEL UP + EMOTE SYSTEM</p>
+            <div class="session-info" id="sessionInfo">
+                <i class="fas fa-wifi"></i> ID: <span id="sessionId">...</span>
+            </div>
+        </div>
+
+        <!-- Connection Card -->
+        <div class="card">
+            <div class="status-box">
+                <div style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 5px;">CONNECTION STATUS</div>
+                <div id="botStatus" class="status offline">OFFLINE</div>
+                <div class="account-name" id="botAccountName">Waiting to connect...</div>
+            </div>
+
+            <div id="connectionForm">
+                <div class="input-row">
+                    <div class="input-group">
+                        <label><i class="fas fa-id-badge"></i> Game UID</label>
+                        <input type="number" id="gameUid" placeholder="123456789">
+                    </div>
+                    <div class="input-group">
+                        <label><i class="fas fa-lock"></i> Password</label>
+                        <input type="password" id="gamePass" placeholder="••••••">
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="connectBot()" id="btnConnect">
+                    <i class="fas fa-bolt"></i> Connect System
+                </button>
+            </div>
+
+            <div id="disconnectBtn" class="hidden">
+                <button class="btn-danger" onclick="disconnectBot()">
+                    <i class="fas fa-power-off"></i> Terminate Session
+                </button>
+            </div>
+        </div>
+
+        <!-- Feature Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('levelup')" id="tabLevelUp">
+                <i class="fas fa-trophy"></i> Farming
+            </button>
+            <button class="tab-btn" onclick="showTab('emote')" id="tabEmote">
+                <i class="fas fa-smile"></i> Emotes
+            </button>
+        </div>
+
+        <!-- Farming Tab -->
+        <div class="card" id="levelupContent">
+            <h3 style="color: var(--primary); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-chart-line"></i> Level Up Automation
+            </h3>
+
+            <div class="input-group">
+                <label>Team Code</label>
+                <input type="number" id="farmTeamCode" placeholder="Enter Team Code">
+            </div>
+
+            <button class="btn-primary" onclick="startFarming()" id="btnStartFarm">
+                <i class="fas fa-play"></i> Start Farming
+            </button>
+            <button class="btn-danger hidden" onclick="stopFarming()" id="btnStopFarm">
+                <i class="fas fa-stop"></i> Stop Farming
+            </button>
+
+            <div class="log-area" id="farmLogs"
+                style="margin-top: 20px; background: #000; padding: 10px; border-radius: 10px; height: 100px; overflow-y: auto; font-family: monospace; font-size: 0.75rem; color: #aaa; border: 1px solid #333;">
+                <div>> System ready...</div>
+            </div>
+        </div>
+
+        <!-- Emote Tab -->
+        <div class="card hidden" id="emoteContent">
+            <h3 style="color: var(--secondary); margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-users"></i> Mass Emote
+            </h3>
+
+            <div class="input-group">
+                <label>Team Code</label>
+                <input type="number" id="emoteTeamCode" placeholder="Enter Team Code">
+            </div>
+
+            <div class="input-group">
+                <label>Targets (UIDs)</label>
+                <div class="uid-grid">
+                    <input type="number" id="uid1" placeholder="UID 1">
+                    <input type="number" id="uid2" placeholder="UID 2">
+                    <input type="number" id="uid3" placeholder="UID 3">
+                    <input type="number" id="uid4" placeholder="UID 4">
+                    <input type="number" id="uid5" placeholder="UID 5">
+                </div>
+            </div>
+
+            <button class="btn-secondary" onclick="createGroupInvite()" id="btnGroupInvite"
+                style="margin-bottom: 20px;">
+                <i class="fas fa-users-cog"></i> Create 5-Man Lobby & Invite
+            </button>
+
+            <div class="emote-category-tabs">
+                <button class="emote-category-tab active" onclick="filterEmotes('normal')">Normal</button>
+                <button class="emote-category-tab" onclick="filterEmotes('evo')">Evo Max</button>
+            </div>
+
+            <div class="emote-grid" id="emoteGrid">
+                <div style="grid-column: 1/-1; text-align: center; padding: 20px; color: var(--text-dim);">Loading...
+                </div>
+            </div>
+
+            <div class="result-box" id="emoteResult">
+                Select an emote to send
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = location.origin + '/api';
+        let pollInterval = null;
+        let emotesData = [];
+        let selectedCategory = 'normal';
+        let sessionReady = false;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initSession();
+        });
+
+        async function initSession() {
+            try {
+                const statusRes = await fetch(API + '/status');
+                const statusData = await statusRes.json();
+
+                if (statusData.status === 'NO_SESSION' || !document.cookie.includes('session_id')) {
+                    const res = await fetch(API + '/create_session', { method: 'POST' });
+                    const data = await res.json();
+                    if (data.success) {
+                        document.getElementById('sessionId').textContent = data.session_id.substring(0, 6);
+                        console.log('Session:', data.session_id);
+                    }
+                } else if (statusData.session_id) {
+                    document.getElementById('sessionId').textContent = statusData.session_id;
+                }
+
+                sessionReady = true;
+                document.getElementById('loadingOverlay').style.opacity = '0';
+                setTimeout(() => document.getElementById('loadingOverlay').style.display = 'none', 500);
+
+                loadEmotes();
+                pollStatus();
+                pollInterval = setInterval(pollStatus, 2000); // 2s polling to save battery
+            } catch (e) {
+                console.error(e);
+                confirm("Server connection failed. Retry?") && location.reload();
+            }
+        }
+
+        function showTab(tab) {
+            document.querySelectorAll('.tab-content, .card').forEach(el => {
+                if (el.id === 'levelupContent' || el.id === 'emoteContent') el.classList.add('hidden');
+            });
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+            document.getElementById(tab + 'Content').classList.remove('hidden');
+            document.getElementById('tab' + (tab === 'levelup' ? 'LevelUp' : 'Emote')).classList.add('active');
+        }
+
+        async function loadEmotes() {
+            try {
+                const res = await fetch(API + '/emotes');
+                emotesData = await res.json();
+                renderEmotes();
+            } catch {
+                document.getElementById('emoteGrid').innerHTML = 'Failed to load';
+            }
+        }
+
+        function renderEmotes() {
+            const grid = document.getElementById('emoteGrid');
+            const filtered = emotesData.filter(e => e.type === selectedCategory);
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#555;">Empty</div>';
+                return;
+            }
+
+            // Optimized DOM building
+            grid.innerHTML = filtered.map(e => `
+                <div class="emote-item" onclick="sendEmote('${e.id}', '${e.name}')">
+                    <img src="/static/images/${e.image}" loading="lazy" onerror="this.style.display='none'">
+                    <div class="emote-name">${e.name}</div>
+                </div>
+            `).join('');
+        }
+
+        function filterEmotes(cat) {
+            selectedCategory = cat;
+            document.querySelectorAll('.emote-category-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            renderEmotes();
+        }
+
+        async function sendEmote(id, name) {
+            const code = document.getElementById('emoteTeamCode').value;
+            const uids = Array.from({ length: 5 }, (_, i) => document.getElementById('uid' + (i + 1)).value).filter(Boolean);
+            const resBox = document.getElementById('emoteResult');
+
+            if (!code || !uids.length) {
+                resBox.innerHTML = '<span style="color:var(--danger)">Need Team Code & UID</span>';
+                return;
+            }
+
+            resBox.innerHTML = `<span style="color:var(--warning)">Sending ${name}...</span>`;
+            try {
+                const res = await fetch(API + '/send_emote', {
+                    method: 'POST', body: JSON.stringify({ team_code: code, emote_id: id, uids: uids })
+                });
+                const d = await res.json();
+                resBox.innerHTML = d.status === 'success' ?
+                    `<span style="color:var(--primary)">✅ Sent!</span>` :
+                    `<span style="color:var(--danger)">❌ ${d.message}</span>`;
+            } catch (e) {
+                resBox.innerHTML = `<span style="color:var(--danger)">Error</span>`;
+            }
+        }
+
+        async function createGroupInvite() {
+            const uids = Array.from({ length: 5 }, (_, i) => document.getElementById('uid' + (i + 1)).value).filter(Boolean);
+            const btn = document.getElementById('btnGroupInvite');
+
+            if (!uids.length) return alert("Enter UIDs first!");
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Working...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(API + '/group_invite', {
+                    method: 'POST', body: JSON.stringify({ uids: uids })
+                });
+                const d = await res.json();
+                alert(d.message);
+            } catch (e) {
+                alert("Error: " + e);
+            } finally {
+                btn.innerHTML = '<i class="fas fa-users-cog"></i> Create 5-Man Lobby & Invite';
+                btn.disabled = false;
+            }
+        }
+
+        async function connectBot() {
+            const uid = document.getElementById('gameUid').value;
+            const pass = document.getElementById('gamePass').value;
+            if (!uid || !pass) return;
+
+            const btn = document.getElementById('btnConnect');
+            btn.innerHTML = 'Connecting...';
+            btn.disabled = true;
+
+            try {
+                await fetch(API + '/connect', { method: 'POST', body: JSON.stringify({ uid, password: pass }) });
+            } catch { btn.disabled = false; btn.innerHTML = 'Connect System'; }
+        }
+
+        async function disconnectBot() {
+            if (confirm("Disconnect?")) await fetch(API + '/disconnect', { method: 'POST' });
+        }
+
+        async function startFarming() {
+            const code = document.getElementById('farmTeamCode').value;
+            if (code) await fetch(API + '/farm_start', { method: 'POST', body: JSON.stringify({ team_code: code }) });
+        }
+
+        async function stopFarming() {
+            await fetch(API + '/farm_stop', { method: 'POST' });
+        }
+
+        let lastStatus = "";
+        async function pollStatus() {
+            if (!sessionReady) return;
+            try {
+                const res = await fetch(API + '/status');
+                const d = await res.json();
+
+                const st = document.getElementById('botStatus');
+                const conn = document.getElementById('connectionForm');
+                const dis = document.getElementById('disconnectBtn');
+
+                st.textContent = d.status;
+                st.className = `status ${d.status.toLowerCase()}`;
+
+                if (d.account_name) document.getElementById('botAccountName').textContent = d.account_name;
+
+                if (d.status === 'ONLINE' || d.status === 'FARMING') {
+                    conn.classList.add('hidden');
+                    dis.classList.remove('hidden');
+                    if (d.status === 'FARMING') {
+                        document.getElementById('btnStartFarm').classList.add('hidden');
+                        document.getElementById('btnStopFarm').classList.remove('hidden');
+                    } else {
+                        document.getElementById('btnStartFarm').classList.remove('hidden');
+                        document.getElementById('btnStopFarm').classList.add('hidden');
+                    }
+                } else {
+                    conn.classList.remove('hidden');
+                    dis.classList.add('hidden');
+                    document.getElementById('btnConnect').innerHTML = '<i class="fas fa-bolt"></i> Connect System';
+                    document.getElementById('btnConnect').disabled = false;
+                }
+
+                if (d.log && d.log !== lastStatus) {
+                    lastStatus = d.log;
+                    const l = document.getElementById('farmLogs');
+                    const x = document.createElement('div');
+                    x.textContent = '> ' + d.log;
+                    l.prepend(x);
+                }
+            } catch { }
+        }
+    </script>
+    <!-- Social Bar Ad -->
+    <script src="https://pl28592909.effectivegatecpm.com/1c/88/33/1c8833122ea32cbcf9d255169df13fab.js"></script>
+
+    <!-- AdBlock Detection -->
+    <div id="ad-block-modal"
+        style="display: none; position: fixed; z-index: 99999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); backdrop-filter: blur(5px);">
+        <div
+            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #121212; padding: 30px; border: 1px solid #ff4444; width: 90%; max-width: 400px; text-align: center; border-radius: 15px; box-shadow: 0 0 30px rgba(255, 68, 68, 0.2);">
+            <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ff4444; margin-bottom: 20px;"></i>
+            <h2 style="color: #fff; margin-bottom: 10px;">Ad Blocker Detected!</h2>
+            <p style="color: #ccc; margin-bottom: 20px;">We rely on ads to keep this bot free. Please disable your ad
+                blocker to continue.</p>
+            <button onclick="location.reload()"
+                style="background: linear-gradient(90deg, #ff4444, #d10000); color: white; border: none; padding: 12px 25px; border-radius: 25px; font-weight: bold; cursor: pointer; text-transform: uppercase;">
+                I've Disabled It
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Check for AdBlock
+        document.addEventListener('DOMContentLoaded', function () {
+            setTimeout(function () {
+                const testAd = document.createElement('div');
+                testAd.innerHTML = '&nbsp;';
+                testAd.className = 'adsbox ad-banner';
+                testAd.style.position = 'absolute';
+                testAd.style.top = '-999px';
+                document.body.appendChild(testAd);
+
+                setTimeout(function () {
+                    const isBlocked = testAd.offsetHeight === 0 ||
+                        !document.getElementById('container-3e93d7984c747c03967dcad9b11ad010');
+
+                    if (testAd.offsetHeight === 0) {
+                        document.getElementById('ad-block-modal').style.display = 'block';
+                    }
+                    testAd.remove();
+                }, 300);
+            }, 2000);
+        });
+    </script>
+</body>
+
+</html>
